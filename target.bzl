@@ -49,8 +49,12 @@ def define_sun(t,v):
             "goodix_ts",
             "st_fts",
             "focaltech_fts",
+            "focaltech_fts_sec",
             "qts",
-            "gt9xx-ts"
+            "gt9xx-ts",
+            "hall_switch",
+            "gpio5_pwm",
+            "haptic"
         ],
         config_options = [
             "TOUCH_DLKM_ENABLE",
@@ -60,6 +64,7 @@ def define_sun(t,v):
             "CONFIG_TOUCHSCREEN_ATMEL_MXT",
             "CONFIG_TOUCHSCREEN_ST",
             "CONFIG_TOUCH_FOCALTECH",
+            "CONFIG_TOUCH_FOCALTECH_SEC",
             "CONFIG_QTS_ENABLE",
             "CONFIG_TOUCHSCREEN_DUMMY",
             "CONFIG_TOUCHSCREEN_GT9XX",

@@ -87,6 +87,18 @@
 #define FTS_I2C_VTG_MAX_UV                  1800000
 #endif
 
+/* virtual touch create date */
+#define MAX_VIRTOUCH_TOUCH 	0x20
+#define VBUTTON_DOWN		1
+#define VBUTTON_UP			0
+#define VIR_SOURCE			0
+extern struct semaphore virtual_touch_sem;
+extern int virtual_touch_set_dev(struct input_dev *dev);
+extern int slot_conver_mechanism(void *identity, int id, int state, int source);
+extern int touch_screen_set_status(int status);
+extern int virtual_touch_empty(void);
+#define MAX_TOUCH_NUMBER	0x16
+
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
@@ -101,6 +113,7 @@ static void fts_ts_panel_notifier_callback(enum panel_event_notifier_tag tag,
 static struct ft_chip_t ctype[] = {
 	{0x88, 0x56, 0x52, 0x00, 0x00, 0x00, 0x00, 0x56, 0xB2},
 	{0x81, 0x54, 0x52, 0x54, 0x52, 0x00, 0x00, 0x54, 0x5C},
+	{0x89, 0x54, 0x52, 0x54, 0x52, 0x54, 0x5B, 0x54, 0x5E},
 	{0x1C, 0x87, 0x26, 0x87, 0x20, 0x87, 0xA0, 0x00, 0x00},
 };
 
@@ -121,19 +134,12 @@ static irqreturn_t fts_ts_irq_handler(int irq, void *data);
 static void fts_ts_register_for_panel_events(struct device_node *dp,
 					struct fts_ts_data *ts_data)
 {
-	const char *touch_type;
-	int rc = 0;
 	void *cookie = NULL;
 
-	rc = of_property_read_string(dp, "focaltech,touch-type",
-						&touch_type);
-	if (rc) {
-		dev_warn(&fts_data->client->dev,
-			"%s: No touch type\n", __func__);
-		return;
-	}
-	if (strcmp(touch_type, "primary")) {
-		pr_err("Invalid touch type\n");
+	(void)dp;
+
+	if (!active_panel) {
+		pr_err("Invalid active panel\n");
 		return;
 	}
 
@@ -145,8 +151,7 @@ static void fts_ts_register_for_panel_events(struct device_node *dp,
 		return;
 	}
 
-	FTS_DEBUG("registered for panel notifications panel: 0x%x\n",
-			active_panel);
+	FTS_DEBUG("registered for panel notifications panel: 0x%x\n", active_panel);
 
 	ts_data->notifier_cookie = cookie;
 }
@@ -1450,6 +1455,7 @@ static int fts_get_chip_types(
 	u8 id_h, u8 id_l, bool fw_valid)
 {
 	int i = 0;
+	u8 configured_type = IC_SERIALS(ts_data->pdata->type);
 	u32 ctype_entries = sizeof(ctype) / sizeof(struct ft_chip_t);
 
 	if ((0x0 == id_h) || (0x0 == id_l)) {
@@ -1459,6 +1465,9 @@ static int fts_get_chip_types(
 
 	FTS_DEBUG("verify id:0x%02x%02x", id_h, id_l);
 	for (i = 0; i < ctype_entries; i++) {
+		if (IC_TO_SERIALS(ctype[i].type) != configured_type)
+			continue;
+
 		if (VALID == fw_valid) {
 			if ((id_h == ctype[i].chip_idh) && (id_l == ctype[i].chip_idl))
 				break;
@@ -1473,6 +1482,7 @@ static int fts_get_chip_types(
 	if (i >= ctype_entries)
 		return -ENODATA;
 
+	FTS_INFO("match ic type:0x%02x", configured_type);
 	ts_data->ic_info.ids = ctype[i];
 	return 0;
 }
@@ -1612,6 +1622,7 @@ void fts_release_all_finger(void)
 
 	FTS_FUNC_ENTER();
 	mutex_lock(&fts_data->report_mutex);
+	down(&virtual_touch_sem);
 #if FTS_MT_PROTOCOL_B_EN
 	for (finger_count = 0; finger_count < max_touches; finger_count++) {
 		input_mt_slot(input_dev, finger_count);
@@ -1620,11 +1631,14 @@ void fts_release_all_finger(void)
 #else
 	input_mt_sync(input_dev);
 #endif
-	input_report_key(input_dev, BTN_TOUCH, 0);
+	touch_screen_set_status(0);
+	if (virtual_touch_empty())
+		input_report_key(input_dev, BTN_TOUCH, 0);
 	input_sync(input_dev);
 
 	fts_data->touchs = 0;
 	fts_data->key_state = 0;
+	up(&virtual_touch_sem);
 	mutex_unlock(&fts_data->report_mutex);
 	FTS_FUNC_EXIT();
 }
@@ -1682,6 +1696,7 @@ static int fts_input_report_b(struct fts_ts_data *data)
 	u32 max_touch_num = data->pdata->max_touch_number;
 	struct ts_event *events = data->events;
 
+	down(&virtual_touch_sem);
 	for (i = 0; i < data->touch_point; i++) {
 		if (fts_input_report_key(data, i) == 0)
 			continue;
@@ -1701,6 +1716,13 @@ static int fts_input_report_b(struct fts_ts_data *data)
 			if (events[i].area <= 0) {
 				events[i].area = 0x09;
 			}
+            if (data->pdata->x_swap){
+                events[i].x = data->pdata->x_max - events[i].x;
+            }
+
+            if (data->pdata->y_swap){
+                events[i].y = data->pdata->y_max - events[i].y;
+            }
 			input_report_abs(data->input_dev, ABS_MT_TOUCH_MAJOR, events[i].area);
 			input_report_abs(data->input_dev, ABS_MT_POSITION_X, events[i].x);
 			input_report_abs(data->input_dev, ABS_MT_POSITION_Y, events[i].y);
@@ -1745,13 +1767,17 @@ static int fts_input_report_b(struct fts_ts_data *data)
 			if (data->log_level >= 1) {
 				FTS_DEBUG("[B]Points All Up!");
 			}
-			input_report_key(data->input_dev, BTN_TOUCH, 0);
+			touch_screen_set_status(0);
+			if (virtual_touch_empty())
+				input_report_key(data->input_dev, BTN_TOUCH, 0);
 		} else {
+			touch_screen_set_status(1);
 			input_report_key(data->input_dev, BTN_TOUCH, 1);
 		}
 	}
 
 	input_sync(data->input_dev);
+	up(&virtual_touch_sem);
 	return 0;
 }
 
@@ -2014,6 +2040,7 @@ static int fts_input_init(struct fts_ts_data *ts_data)
 	__set_bit(EV_KEY, input_dev->evbit);
 	__set_bit(BTN_TOUCH, input_dev->keybit);
 	__set_bit(INPUT_PROP_DIRECT, input_dev->propbit);
+	input_set_capability(input_dev, EV_KEY, KEY_POWER);
 
 	if (pdata->have_key) {
 		FTS_INFO("set key capabilities");
@@ -2022,7 +2049,8 @@ static int fts_input_init(struct fts_ts_data *ts_data)
 	}
 
 #if FTS_MT_PROTOCOL_B_EN
-	input_mt_init_slots(input_dev, pdata->max_touch_number, INPUT_MT_DIRECT);
+	// input_mt_init_slots(input_dev, pdata->max_touch_number, INPUT_MT_DIRECT);
+	input_mt_init_slots(input_dev, MAX_TOUCH_NUMBER, INPUT_MT_DIRECT);
 #else
 	input_set_abs_params(input_dev, ABS_MT_TRACKING_ID, 0, 0x0F, 0, 0);
 #endif
@@ -2043,6 +2071,9 @@ static int fts_input_init(struct fts_ts_data *ts_data)
 	}
 
 	ts_data->input_dev = input_dev;
+
+	virtual_touch_set_dev(input_dev);
+	printk("%s virtual_touch_set_dev %p", __FUNCTION__, input_dev);
 
 	FTS_FUNC_EXIT();
 	return 0;
@@ -2572,12 +2603,27 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
 			pdata->max_touch_number = temp_val;
 	}
 
+    ret = of_property_read_u32(np, "focaltech,swap-x", &temp_val);
+    if (ret < 0) {
+        FTS_ERROR("Unable to get focaltech,swap-x, please check dts");
+        pdata->x_swap = 0;
+    } else {
+        pdata->x_swap = temp_val ? 1: 0;
+    }
+
+    ret = of_property_read_u32(np, "focaltech,swap-y", &temp_val);
+    if (ret < 0) {
+        FTS_ERROR("Unable to get focaltech,swap-y, please check dts");
+        pdata->y_swap = 0;
+    } else {
+        pdata->y_swap = temp_val ? 1: 0;
+    }
 	FTS_INFO("max touch number:%d, irq gpio:%d, reset gpio:%d",
 		pdata->max_touch_number, pdata->irq_gpio, pdata->reset_gpio);
 
 	ret = of_property_read_u32(np, "focaltech,ic-type", &temp_val);
 	if (ret < 0)
-		pdata->type = _FT3518;
+		pdata->type = _FT3519;
 	else
 		pdata->type = temp_val;
 
@@ -2815,6 +2861,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 	mutex_init(&ts_data->report_mutex);
 	mutex_init(&ts_data->bus_lock);
 	mutex_init(&ts_data->transition_lock);
+	mutex_init(&ts_data->tui_transition_lock);
 
 	/* Init communication interface */
 	ret = fts_bus_init(ts_data);
@@ -2896,7 +2943,6 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 #endif
 	qts_en = of_property_read_bool(dp, "focaltech,qts_en");
 	if (qts_en) {
-		mutex_init(&ts_data->tui_transition_lock);
 		fts_ts_fill_qts_vendor_data(&qts_vendor_data, ts_data);
 		ret = qts_client_register(&qts_vendor_data);
 		if (ret) {
@@ -3559,10 +3605,13 @@ static void __exit fts_ts_spi_exit(void)
 	spi_unregister_driver(&fts_ts_spi_driver);
 }
 
+extern int rstouch_init(void);
+extern void rstouch_exit(void);
+
 static int __init fts_ts_init(void)
 {
 	int ret = 0;
-
+	rstouch_init();
 	ret = fts_ts_i2c_init();
 	if (ret)
 		FTS_ERROR("Focaltech I2C driver init failed!");
@@ -3578,6 +3627,7 @@ static void __exit fts_ts_exit(void)
 {
 	fts_ts_i2c_exit();
 	fts_ts_spi_exit();
+	rstouch_exit();
 }
 
 #ifdef CONFIG_ARCH_QTI_VM

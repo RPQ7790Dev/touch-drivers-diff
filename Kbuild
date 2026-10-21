@@ -166,6 +166,8 @@ ifeq ($(CONFIG_TOUCH_FOCALTECH), y)
 	LINUX_INC += -include $(TOUCH_ROOT)/focaltech_touch/focaltech_flash.h
 
 	focaltech_fts-y := \
+		./focaltech_touch/slot_hub.o \
+		./focaltech_touch/virtual_touch.o \
 		 ./focaltech_touch/focaltech_core.o \
 		 ./focaltech_touch/focaltech_ex_fun.o \
 		 ./focaltech_touch/focaltech_ex_mode.o \
@@ -175,6 +177,26 @@ ifeq ($(CONFIG_TOUCH_FOCALTECH), y)
 		 ./focaltech_touch/focaltech_i2c.o \
 		 ./focaltech_touch/focaltech_flash.o \
 		 ./focaltech_touch/focaltech_flash/focaltech_upgrade_ft3518.o
+
+	obj-$(CONFIG_MSM_TOUCH) += focaltech_fts.o
+endif
+
+ifeq ($(CONFIG_TOUCH_FOCALTECH_SEC), y)
+	LINUX_INC += -include $(TOUCH_ROOT)/focaltech_touch_sec/focaltech_common.h
+	LINUX_INC += -include $(TOUCH_ROOT)/focaltech_touch_sec/focaltech_config.h
+	LINUX_INC += -include $(TOUCH_ROOT)/focaltech_touch_sec/focaltech_core.h
+	LINUX_INC += -include $(TOUCH_ROOT)/focaltech_touch_sec/focaltech_flash.h
+
+	focaltech_fts-y := \
+		 ./focaltech_touch_sec/focaltech_core.o \
+		 ./focaltech_touch_sec/focaltech_ex_fun.o \
+		 ./focaltech_touch_sec/focaltech_ex_mode.o \
+		 ./focaltech_touch_sec/focaltech_gesture.o \
+		 ./focaltech_touch_sec/focaltech_esdcheck.o \
+		 ./focaltech_touch_sec/focaltech_point_report_check.o \
+		 ./focaltech_touch_sec/focaltech_i2c.o \
+		 ./focaltech_touch_sec/focaltech_flash.o \
+		 ./focaltech_touch_sec/focaltech_flash/focaltech_upgrade_ft3518.o
 
 	obj-$(CONFIG_MSM_TOUCH) += focaltech_fts.o
 endif
@@ -391,5 +413,31 @@ ifneq ($(CONFIG_ARCH_PINEAPPLE), y)
 	endif
 
 endif # pineapple
+
+ifeq ($(CONFIG_KEY_DETECT), y)
+        hall_switch-y := \
+                 ./hall/hall_switch.o
+
+        obj-$(CONFIG_MSM_TOUCH) += hall_switch.o
+endif
+
+gpio5_pwm-y := \
+	./gpio5_pwm/gpio5_pwm.o
+
+obj-$(CONFIG_MSM_TOUCH) += gpio5_pwm.o
+
+ifeq ($(CONFIG_AWINIC_HAPTIC_HV), y)
+		haptic-y := \
+			./haptic/aw8671x.o \
+        	./haptic/aw8672x.o \
+        	./haptic/aw869x.o \
+        	./haptic/aw8692x.o \
+        	./haptic/aw8693x.o \
+        	./haptic/aw8693xs.o \
+        	./haptic/aw869xx.o \
+        	./haptic/haptic_hv.o
+
+        obj-$(CONFIG_MSM_TOUCH) += haptic.o
+endif
 
 CDEFINES += -DBUILD_TIMESTAMP=\"$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')\"

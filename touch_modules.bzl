@@ -75,15 +75,35 @@ module_entry(
     name = "focaltech_fts",
     config_option = "CONFIG_TOUCH_FOCALTECH",
     srcs = [
+            "focaltech_touch/slot_hub.c",
+            "focaltech_touch/virtual_touch.c",
             "focaltech_touch/focaltech_core.c",
             "focaltech_touch/focaltech_esdcheck.c",
             "focaltech_touch/focaltech_ex_fun.c",
             "focaltech_touch/focaltech_ex_mode.c",
             "focaltech_touch/focaltech_flash/focaltech_upgrade_ft3518.c",
+            "focaltech_touch/focaltech_flash/focaltech_upgrade_ft3519.c",
             "focaltech_touch/focaltech_flash.c",
             "focaltech_touch/focaltech_gesture.c",
             "focaltech_touch/focaltech_i2c.c",
             "focaltech_touch/focaltech_point_report_check.c"
+    ],
+    deps = ["qts"],
+)
+module_entry(
+    name = "focaltech_fts_sec",
+    config_option = "CONFIG_TOUCH_FOCALTECH_SEC",
+    srcs = [
+            "focaltech_touch_sec/focaltech_core.c",
+            "focaltech_touch_sec/focaltech_esdcheck.c",
+            "focaltech_touch_sec/focaltech_ex_fun.c",
+            "focaltech_touch_sec/focaltech_ex_mode.c",
+            "focaltech_touch_sec/focaltech_flash/focaltech_upgrade_ft3518.c",
+            "focaltech_touch_sec/focaltech_flash/focaltech_upgrade_ft3519.c",
+            "focaltech_touch_sec/focaltech_flash.c",
+            "focaltech_touch_sec/focaltech_gesture.c",
+            "focaltech_touch_sec/focaltech_i2c.c",
+            "focaltech_touch_sec/focaltech_point_report_check.c"
     ],
     deps = ["qts"],
 )
@@ -226,4 +246,42 @@ module_entry(
             "gt9xx/gt9xx_update.c",
             "gt9xx/goodix_tool.c"
     ],
+)
+
+#define ddk_module() for hall_switch
+module_entry(
+    name = "hall_switch",
+    config_option = "CONFIG_MSM_TOUCH",
+    srcs = [
+            "hall/hall_switch.c"
+    ],
+    deps = ["qts"],
+)
+
+#define ddk_module() for gpio5_pwm
+module_entry(
+    name = "gpio5_pwm",
+    config_option = "CONFIG_MSM_TOUCH",
+    srcs = [
+            "gpio5_pwm/gpio5_pwm.c"
+    ],
+)
+
+#define ddk_module() for haptic
+module_entry(
+    name = "haptic",
+    config_option = "CONFIG_MSM_TOUCH",
+    srcs = [
+        "haptic/aw8671x.c",
+        "haptic/aw8672x.c",
+        "haptic/aw869x.c",
+        "haptic/aw8692x.c",
+        "haptic/aw8693x.c",
+        "haptic/aw8693xs.c",
+        "haptic/aw869xx.c",
+        "haptic/haptic_hv.c",
+        "haptic/haptic_hv.h",
+        "haptic/haptic_hv_reg.h"
+    ],
+    deps = ["qts"],
 )

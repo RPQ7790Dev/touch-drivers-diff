@@ -142,6 +142,8 @@ struct fts_ts_platform_data {
 	u32 y_max;
 	u32 x_min;
 	u32 y_min;
+    u32 x_swap;
+    u32 y_swap;
 	u32 max_touch_number;
 };
 

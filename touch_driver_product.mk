@@ -28,7 +28,11 @@ ifeq ($(TOUCH_DLKM_ENABLE),  true)
                         $(KERNEL_MODULES_OUT)/atmel_mxt_ts.ko \
                         $(KERNEL_MODULES_OUT)/st_fts.ko \
 			$(KERNEL_MODULES_OUT)/focaltech_fts.ko \
-                        $(KERNEL_MODULES_OUT)/qts.ko
+                        $(KERNEL_MODULES_OUT)/qts.ko \
+                        $(KERNEL_MODULES_OUT)/focaltech_fts_sec.ko \
+                        $(KERNEL_MODULES_OUT)/hall_switch.ko \
+                        $(KERNEL_MODULES_OUT)/gpio5_pwm.ko \
+                        $(KERNEL_MODULES_OUT)/haptic.ko
         else ifeq ($(TARGET_BOARD_PLATFORM), canoe)
                 PRODUCT_PACKAGES += $(KERNEL_MODULES_OUT)/goodix_ts.ko \
                         $(KERNEL_MODULES_OUT)/atmel_mxt_ts.ko \

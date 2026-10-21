@@ -869,7 +869,7 @@ static int convert_ic_info(struct goodix_ic_info *info, const u8 *data)
 
 	return 0;
 }
-
+#if PRINTK_INFO_EN
 static void print_ic_info(struct goodix_ic_info *ic_info)
 {
 	struct goodix_ic_info_version *version = &ic_info->version;
@@ -940,7 +940,7 @@ static void print_ic_info(struct goodix_ic_info *ic_info)
 	ts_info("esd_addr:                      0x%04X",
 		misc->esd_addr);
 }
-
+#endif
 static int brl_get_ic_info(struct goodix_ts_core *cd,
 	struct goodix_ic_info *ic_info)
 {
@@ -1000,9 +1000,9 @@ static int brl_get_ic_info(struct goodix_ts_core *cd,
 		ts_err("convert ic info encounter error");
 		return ret;
 	}
-
+#if PRINTK_INFO_EN
 	print_ic_info(ic_info);
-
+#endif
 	/* check some key info */
 	if (!ic_info->misc.cmd_addr || !ic_info->misc.fw_buffer_addr ||
 	    !ic_info->misc.touch_data_addr) {

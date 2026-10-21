@@ -46,8 +46,8 @@
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
-u8 fw_file[1] = {
-0,
+u8 fw_file[] = {
+#include FTS_UPGRADE_FW_FILE
 };
 
 struct upgrade_module module_list[] = {
@@ -68,6 +68,7 @@ struct upgrade_func upgrade_func_ft8720 = {
 };
 
 struct upgrade_func *upgrade_func_list[] = {
+	&upgrade_func_ft5452j,
 	&upgrade_func_ft5452,
 	&upgrade_func_ft5652,
 	&upgrade_func_ft8720,
@@ -666,7 +667,10 @@ static int fts_fwupg_enter_into_boot_old(struct fts_upgrade *upg)
 	if (upg->func->pramboot_supported) {
 		FTS_INFO("pram supported, write pramboot and init");
 		/* pramboot */
-		ret = fts_pram_write_init(upg);
+		if (upg->func->write_pramboot_private)
+			ret = upg->func->write_pramboot_private();
+		else
+			ret = fts_pram_write_init(upg);
 		if (ret < 0) {
 			FTS_ERROR("pram write_init fail");
 			return ret;

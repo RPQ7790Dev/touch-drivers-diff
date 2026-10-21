@@ -41,9 +41,22 @@ ddk_headers(
 ddk_headers(
     name = "focaltech_headers",
     hdrs = glob([
-            "focaltech_touch/*.h"
+            "focaltech_touch/*.h",
+            "focaltech_touch/include/firmware/*.i",
+            "focaltech_touch/include/pramboot/*.i",
         ]
     )
+)
+
+ddk_headers(
+    name = "focaltech_sec_headers",
+    hdrs = glob([
+            "focaltech_touch_sec/*.h",
+            "focaltech_touch_sec/include/firmware/*.i",
+            "focaltech_touch_sec/include/pramboot/*.i",
+        ]
+    ),
+    includes = ["focaltech_touch_sec"]
 )
 
 ddk_headers(
@@ -117,7 +130,7 @@ ddk_headers(
 
 ddk_headers(
     name = "touch_drivers_headers",
-    hdrs = [":st_ts_headers", ":qts_headers", ":goodix_ts_headers", ":nt36xxx_headers", ":focaltech_headers", ":synaptics_tcm_headers", ":synaptics_tcm2_headers", ":pt_headers", ":raydium_headers", ":config_headers", ":glink_interface_ts_headers", ":gt9xx_headers"]
+    hdrs = [":st_ts_headers", ":qts_headers", ":goodix_ts_headers", ":nt36xxx_headers", ":focaltech_headers", ":focaltech_sec_headers", ":synaptics_tcm_headers", ":synaptics_tcm2_headers", ":pt_headers", ":raydium_headers", ":config_headers", ":glink_interface_ts_headers", ":gt9xx_headers"]
 )
 
 load(":target.bzl", "define_touch_target")

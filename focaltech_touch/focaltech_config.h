@@ -123,6 +123,10 @@
 #define _FT5536L            0x5536E481
 #define _FT3418             0x34180481
 
+#define _FT3519             0x35190489
+#define _FT3519T            0x3519E489
+#define _FT3519U            0x3519D489
+
 #define _FT5446U            0x5446D083
 #define _FT5456U            0x5456D083
 #define _FT3417U            0x3417D083
@@ -181,7 +185,7 @@
  * Report Pressure in multitouch
  * 1:enable(default),0:disable
 */
-#define FTS_REPORT_PRESSURE_EN                  1
+#define FTS_REPORT_PRESSURE_EN                  0
 
 /*
  * Gesture function enable
@@ -230,7 +234,7 @@
 /*
  * Numbers of modules support
  */
-#define FTS_GET_MODULE_NUM                      2
+#define FTS_GET_MODULE_NUM                      0
 
 /*
  * module_id: mean vendor_id generally, also maybe gpio or lcm_id...
@@ -260,7 +264,7 @@
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                    "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW_FILE                    "include/firmware/FT3519_FGLM05481058__V0d_D01_20251230_app.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2

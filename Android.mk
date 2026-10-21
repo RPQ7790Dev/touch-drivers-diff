@@ -74,6 +74,7 @@ KBUILD_OPTIONS := TOUCH_ROOT=$(TOUCH_BLD_DIR)
 KBUILD_OPTIONS += MODNAME=touch_dlkm
 KBUILD_OPTIONS += BOARD_PLATFORM=$(TARGET_BOARD_PLATFORM)
 KBUILD_OPTIONS += $(TOUCH_SELECT)
+KBUILD_OPTIONS += DTC=$(abspath $(TOP))/kernel_platform/build/kernel/build-tools/path/linux-x86/dtc
 
 ###########################################################
 
@@ -247,12 +248,56 @@ else ifeq ($(TARGET_BOARD_PLATFORM), sun)
        LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
        include $(DLKM_DIR)/Build_external_kernelmodule.mk
        ###########################################################
+			
+			 ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := focaltech_fts_sec.ko
+       LOCAL_MODULE_KBUILD_NAME  := focaltech_fts_sec.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
 
        ###########################################################
        include $(CLEAR_VARS)
        LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
        LOCAL_MODULE              := gt9xx-ts.ko
        LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := hall_switch.ko
+       LOCAL_MODULE_KBUILD_NAME  := hall_switch.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := haptic.ko
+       LOCAL_MODULE_KBUILD_NAME  := haptic.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := gpio5_pwm.ko
+       LOCAL_MODULE_KBUILD_NAME  := gpio5_pwm.ko
        LOCAL_MODULE_TAGS         := optional
        #LOCAL_MODULE_DEBUG_ENABLE := true
        LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
